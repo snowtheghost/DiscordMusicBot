@@ -31,6 +31,14 @@ async def disconnect(guild) -> None:
             await vc.disconnect()
 
 
+def check_channel(message) -> Optional:
+    try:
+        return message.author.voice.channel
+    except AttributeError:
+        await message.channel.send("You need to be in a voice channel to use this bot.")
+        return
+
+
 async def load_audio(message) -> Optional[dict]:
     info = YoutubeSearch(message.content[8:], max_results=1).to_dict()
     if len(info) == 0:
@@ -52,6 +60,10 @@ async def commence_playback(vc, channel, info) -> None:
 
 
 async def start(message, voice_channel) -> None:
+    voice_channel = check_channel(message)
+    if voice_channel is None:
+        return
+
     await disconnect(message.guild)
     vc = await voice_channel.connect()
 
@@ -77,16 +89,10 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    try:
-        voice_channel = message.author.voice.channel
-    except AttributeError:
-        await message.channel.send("You need to be in a voice channel to use this bot.")
-        return
-
     if message.content[0:2] == "mm":
         command = message.content[3:7]
         if command == "play":
-            await start(message, voice_channel)
+            await start(message)
         elif command == "stop":
             await stop(message)
         # TODO help, pause, resume
