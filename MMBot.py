@@ -31,7 +31,7 @@ async def disconnect(guild) -> None:
             await vc.disconnect()
 
 
-def check_channel(message) -> Optional:
+async def check_channel(message) -> Optional:
     try:
         return message.author.voice.channel
     except AttributeError:
@@ -59,8 +59,8 @@ async def commence_playback(vc, channel, info) -> None:
         await asyncio.sleep(1)
 
 
-async def start(message, voice_channel) -> None:
-    voice_channel = check_channel(message)
+async def start(message) -> None:
+    voice_channel = await check_channel(message)
     if voice_channel is None:
         return
 
