@@ -59,6 +59,17 @@ async def commence_playback(vc, channel, info) -> None:
         await asyncio.sleep(1)
 
 
+async def recommence_playback(vc) -> None:
+    vc.play(discord.FFmpegPCMAudio('.requested'), after=lambda e: print('done', e))
+
+    while vc.is_playing():
+        await asyncio.sleep(1)
+
+
+async def good_bot(message) -> None:
+    await message.channel.send(f"Thanks, @{str(message.author)[:len(str(message.author)) - 5]}.")
+
+
 async def start(message) -> None:
     voice_channel = await check_channel(message)
     if voice_channel is None:
@@ -74,6 +85,23 @@ async def start(message) -> None:
     await commence_playback(vc, message.channel, info)
     await disconnect(message.guild)
     clean_files()
+
+
+async def loop(message) -> None:
+    voice_channel = await check_channel(message)
+    if voice_channel is None:
+        return
+
+    await disconnect(message.guild)
+    vc = await voice_channel.connect()
+
+    info = await load_audio(message)
+    if info is None:
+        return
+
+    await commence_playback(vc, message.channel, info)
+    while True:
+        recommence_playback(vc)
 
 
 async def stop(message) -> None:
@@ -93,8 +121,12 @@ async def on_message(message):
         command = message.content[3:7]
         if command == "play":
             await start(message)
+        elif command == "loop":
+            await loop(message)
         elif command == "stop":
             await stop(message)
+        elif command == "good":
+            await good_bot(message)
         # TODO help, pause, resume
         else:
             await message.channel.send("The command was not recognized. Type *mm help* for a list of commands.")
@@ -103,5 +135,3 @@ async def on_message(message):
 
 clean_files()
 client.run(TOKEN)
-
-
