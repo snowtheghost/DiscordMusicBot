@@ -101,7 +101,7 @@ async def loop(message) -> None:
 
     await commence_playback(vc, message.channel, info)
     while True:
-        recommence_playback(vc)
+        await recommence_playback(vc)
 
 
 async def stop(message) -> None:
